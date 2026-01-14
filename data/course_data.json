@@ -156,6 +156,36 @@
           }
         }
       ]
+    },
+    {
+      "id": "ch5_calculus",
+      "title": "Phase 5: The Art of Change",
+      "lessons": [
+        {
+          "id": "5_1_slope",
+          "title": "Steepness",
+          "visualType": "slope_scanner",
+          "instruction": "Drag the scanner to find where the slope is zero.",
+          "interactionConfig": {
+            "function": "parabola",
+            "showTangent": true
+          },
+          "quiz": {
+            "question": "At the bottom of the curve, what is the slope?",
+            "options": [
+              "Negative",
+              "Zero",
+              "Positive"
+            ],
+            "correctIndex": 1,
+            "failureHints": [
+              "Look at the number when the dot is at the bottom.",
+              "Correct! The line is flat.",
+              "Think about the tangent line which touches the curve."
+            ]
+          }
+        }
+      ]
     }
   ]
 }

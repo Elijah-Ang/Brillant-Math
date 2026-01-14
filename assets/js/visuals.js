@@ -27,6 +27,9 @@ export class VisualManager {
             case 'unit_circle':
                 if (this.renderUnitCircle) this.renderUnitCircle(config);
                 break;
+            case 'slope_scanner':
+                if (this.renderSlopeScanner) this.renderSlopeScanner(config);
+                break;
             default:
                 console.warn(`Unknown visual type: ${type}`);
         }
@@ -461,13 +464,41 @@ export class VisualManager {
     }
 
     makeDraggable() {
-        // Remove existing listeners if any (simple implementation: just re-add, browsers handle multiples okay usually but better to clean up. 
-        // For prototype, we'll just be careful not to call it multiple times per render or rely on the fact that we clear innerHTML so elements are new.)
+        // Define Drag Strategies
+        const DRAG_STRATEGIES = {
+            'grid-point': (visuals, el, x, y) => {
+                // Grid Logic: Update Label live
+                // Calculate Grid Coordinates
+                // Origin: 500, 500. Grid: 50px.
+                const gridX = Math.round((x - 500) / 50);
+                const gridY = Math.round((500 - y) / 50);
+
+                const label = el.querySelector('#coord-label');
+                if (label) label.textContent = `(${gridX}, ${gridY})`;
+
+                // Allow standard drag but maybe snap later?
+                // For live drag, we usually just follow mouse or snap.
+                // The original code moved the element to x,y then snapped on end.
+                // So here we just move it.
+                el.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+            },
+            'trig-handle': (visuals, el, x, y) => {
+                // Critical Fix: Call the Unit Circle constraint logic
+                visuals.handleUnitCircleDrag(el, x, y);
+            },
+            'slope-scanner': (visuals, el, x, y) => {
+                // Constrain to function curve y = x^2
+                // We drag X, and Y is determined.
+                visuals.handleSlopeScannerDrag(el, x, y);
+            },
+            'default': (visuals, el, x, y) => {
+                el.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+            }
+        };
 
         let selectedElement = null;
         let offset = { x: 0, y: 0 };
 
-        // Use arrow function to preserve 'this'
         const startDrag = (evt) => {
             if (evt.target.parentNode.classList.contains('draggable')) {
                 selectedElement = evt.target.parentNode;
@@ -482,9 +513,11 @@ export class VisualManager {
 
                 // Get initial translation
                 const transform = selectedElement.getAttributeNS(null, "transform");
-                const translate = this.getTranslate(transform);
-                offset.x -= translate.x;
-                offset.y -= translate.y;
+                if (transform) {
+                    const translate = this.getTranslate(transform);
+                    offset.x -= translate.x;
+                    offset.y -= translate.y;
+                }
             }
         };
 
@@ -497,21 +530,9 @@ export class VisualManager {
                 const x = (evt.clientX - CTM.e) / CTM.a - offset.x;
                 const y = (evt.clientY - CTM.f) / CTM.d - offset.y;
 
-                selectedElement.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
-
-                // Grid Specific: Update Label live
-                if (selectedElement.id === 'grid-point') {
-                    // Calculate Grid Coordinates
-                    // Origin: 500, 500. Grid: 50px.
-                    // X = (x - 500) / 50
-                    // Y = (500 - y) / 50 (Y is up)
-
-                    const gridX = Math.round((x - 500) / 50);
-                    const gridY = Math.round((500 - y) / 50);
-
-                    const label = selectedElement.querySelector('#coord-label');
-                    if (label) label.textContent = `(${gridX}, ${gridY})`;
-                }
+                // Execute Strategy
+                const strategy = DRAG_STRATEGIES[selectedElement.id] || DRAG_STRATEGIES['default'];
+                strategy(this, selectedElement, x, y);
             }
         };
 
@@ -519,6 +540,9 @@ export class VisualManager {
             if (selectedElement) {
                 const transform = selectedElement.getAttributeNS(null, "transform");
                 const pos = this.getTranslate(transform);
+
+                // Strategy-specific end logic could go here too, but for now we keep the shared mix
+                // Ideally this moves to strategies 'onDragEnd' too.
 
                 // Grid Logic: Snap to nearest grid intersection
                 if (selectedElement.id === 'grid-point') {
@@ -530,19 +554,26 @@ export class VisualManager {
 
                     selectedElement.setAttributeNS(null, "transform", `translate(${snapX}, ${snapY})`);
 
-                    // Check Answer? 
-                    // This would ideally communicate back to the engine.
-                    // For now, if (3, 2), simplify visual feedback
+                    // Visual Feedback for Target (3, 2)
                     if (gridX === 3 && gridY === 2) {
                         selectedElement.querySelector('circle').setAttribute('fill', '#22c55e');
                     } else {
                         selectedElement.querySelector('circle').setAttribute('fill', '#3b82f6');
                     }
+                    selectedElement = null;
+                    return;
+                }
+
+                // For Unit Circle, we don't need drop zones logic, it just stays on circle.
+                // So if it was the handle, we are done.
+                // Specific IDs that don't need drop collision
+                if (['trig-handle', 'slope-scanner'].includes(selectedElement.id)) {
+                    selectedElement = null;
                     return;
                 }
 
 
-                // Check Collisions with Drop Zones
+                // Check Collisions with Drop Zones (for Balance Scale / Machine)
                 let droppedZone = null;
                 for (const zone of this.dropZones) {
                     if (pos.x >= zone.x && pos.x <= zone.x + zone.width &&
@@ -591,6 +622,120 @@ export class VisualManager {
         this.svg.ontouchstart = startDrag;
         this.svg.ontouchmove = drag;
         this.svg.addEventListener('touchend', endDrag);
+    }
+
+    /**
+     * Renders the Slope Scanner (Calculus).
+     * Config: { function: "parabola" }
+     */
+    renderSlopeScanner(config) {
+        // 1. Grid/Axes
+        // Origin: 500, 800. Scale: 1 unit = 100px.
+        // Y-axis up to 200 (6 units). X-axis 200 to 800 (-3 to 3).
+
+        // Axes
+        this.svg.appendChild(this.createSVGElement('line', {
+            x1: 500, y1: 200, x2: 500, y2: 800, stroke: "#374151", "stroke-width": 3
+        }));
+        this.svg.appendChild(this.createSVGElement('line', {
+            x1: 200, y1: 800, x2: 800, y2: 800, stroke: "#374151", "stroke-width": 3
+        }));
+
+        // Function Curve y = x^2
+        // Generate path data
+        let pathD = "M ";
+        for (let ix = -3; ix <= 3; ix += 0.1) {
+            const px = 500 + ix * 100;
+            const py = 800 - (ix * ix) * 100;
+            pathD += `${px} ${py} L `;
+        }
+        pathD = pathD.slice(0, -3); // Remove last L
+
+        this.svg.appendChild(this.createSVGElement('path', {
+            d: pathD, fill: "none", stroke: "#3b82f6", "stroke-width": 4
+        }));
+
+        // 2. Tangent Line (Dynamic)
+        // Group to hold tangent
+        const tangentGroup = this.createSVGElement('g', { id: 'tangent-group' });
+        const tangentLine = this.createSVGElement('line', {
+            id: 'tangent-line', x1: 0, y1: 0, x2: 0, y2: 0,
+            stroke: "#ef4444", "stroke-width": 2, "stroke-dasharray": "5,5"
+        });
+        tangentGroup.appendChild(tangentLine);
+        this.svg.appendChild(tangentGroup);
+
+        // 3. Scanner Tool (Draggable)
+        // Start at x=0 (500, 800)
+        const scannerGroup = this.createSVGElement('g', {
+            class: 'draggable', id: 'slope-scanner',
+            transform: `translate(500, 800)`
+        });
+
+        // Magnifying glass look
+        scannerGroup.appendChild(this.createSVGElement('circle', {
+            r: 30, fill: "rgba(255,255,255,0.5)", stroke: "#374151", "stroke-width": 3
+        }));
+        scannerGroup.appendChild(this.createSVGElement('circle', {
+            r: 4, fill: "#374151" // Center dot
+        }));
+
+        // Slope Readout
+        const readout = this.createSVGElement('text', {
+            x: 40, y: -40, "font-size": "24px", fill: "#374151", "font-weight": "bold",
+            id: 'slope-readout'
+        });
+        readout.textContent = "Slope: 0.0";
+        scannerGroup.appendChild(readout);
+
+        this.svg.appendChild(scannerGroup);
+
+        this.makeDraggable();
+    }
+
+    handleSlopeScannerDrag(element, rawX, rawY) {
+        // Constrain to Parabola y = x^2
+        // Origin: 500, 800. Scale: 100px.
+        // Map rawX to mathX
+        let mathX = (rawX - 500) / 100;
+
+        // Clamp X to visible range [-3, 3]
+        if (mathX < -3) mathX = -3;
+        if (mathX > 3) mathX = 3;
+
+        const mathY = mathX * mathX;
+
+        // Map back to screen
+        const screenX = 500 + mathX * 100;
+        const screenY = 800 - mathY * 100;
+
+        element.setAttributeNS(null, "transform", `translate(${screenX}, ${screenY})`);
+
+        // Calculate Slope and Update Tangent
+        // Slope m = 2x
+        const m = 2 * mathX;
+
+        // Update Readout
+        const readout = element.querySelector('#slope-readout');
+        if (readout) readout.textContent = `Slope: ${m.toFixed(1)}`;
+
+        // Draw Tangent Line
+        // Line through (screenX, screenY) with slope m (math slope).
+        // Screen slope = -m (because Y up is negative).
+        // Length of line? Let's say +/- 100px in X direction.
+
+        // Point 1: x - 1, y - m (in math coords) -> screen coords
+        // Delta X = 1 unit (100px). Delta Y = m units (m*100 px).
+        // Left Point: (screenX - 100, screenY + m*100)
+        // Right Point: (screenX + 100, screenY - m*100)
+
+        const tanLine = document.getElementById('tangent-line');
+        if (tanLine) {
+            tanLine.setAttribute('x1', screenX - 100);
+            tanLine.setAttribute('y1', screenY + m * 100);
+            tanLine.setAttribute('x2', screenX + 100);
+            tanLine.setAttribute('y2', screenY - m * 100);
+        }
     }
 
     /**
