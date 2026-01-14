@@ -90,6 +90,36 @@
           }
         }
       ]
+    },
+    {
+      "id": "ch3_graphing",
+      "title": "Phase 3: Coordinate Geometry",
+      "lessons": [
+        {
+          "id": "3_1_coordinates",
+          "title": "Finding Treasure",
+          "visualType": "coordinate_grid",
+          "instruction": "Drag the blue dot to coordinates (3, 2).",
+          "interactionConfig": {
+            "targetX": 3,
+            "targetY": 2
+          },
+          "quiz": {
+            "question": "What happens to the coordinates when you move UP?",
+            "options": [
+              "X increases",
+              "Y increases",
+              "Y decreases"
+            ],
+            "correctIndex": 1,
+            "failureHints": [
+              "Look at the second number.",
+              "Correct!",
+              "Remember, Y is vertical."
+            ]
+          }
+        }
+      ]
     }
   ]
 }

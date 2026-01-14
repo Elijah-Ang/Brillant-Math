@@ -109,12 +109,20 @@ export class LessonEngine {
         if (this.currentLesson < chapter.lessons.length - 1) {
             this.currentLesson++;
             this.renderLesson();
+        } else if (this.currentChapter < this.courseData.chapters.length - 1) {
+            this.currentChapter++;
+            this.currentLesson = 0;
+            this.renderLesson();
         }
     }
 
     prevLesson() {
         if (this.currentLesson > 0) {
             this.currentLesson--;
+            this.renderLesson();
+        } else if (this.currentChapter > 0) {
+            this.currentChapter--;
+            this.currentLesson = this.courseData.chapters[this.currentChapter].lessons.length - 1;
             this.renderLesson();
         }
     }
