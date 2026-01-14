@@ -12,6 +12,7 @@ export class VisualManager {
     render(type, config) {
         this.svg.innerHTML = ''; // Clear canvas
         this.dropZones = []; // Reset drop zones
+        this.currentVisualType = type; // Store type for interaction handlers
 
         switch (type) {
             case 'balance_scale_simple':
@@ -22,6 +23,9 @@ export class VisualManager {
                 break;
             case 'coordinate_grid':
                 if (this.renderGrid) this.renderGrid(config);
+                break;
+            case 'unit_circle':
+                if (this.renderUnitCircle) this.renderUnitCircle(config);
                 break;
             default:
                 console.warn(`Unknown visual type: ${type}`);
@@ -88,9 +92,137 @@ export class VisualManager {
     }
 
     /**
-     * Renders a Coordinate Grid.
-     * Config: { targetX: number, targetY: number }
+     * Renders the Unit Circle for Trigonometry.
+     * Config: { showSine: boolean, showCosine: boolean }
      */
+    renderUnitCircle(config) {
+        // 1. Axes/Grid Background
+        const centerX = 500;
+        const centerY = 500;
+        const radius = 200;
+
+        // Background Grid (Optional usually, but helpful)
+        this.svg.appendChild(this.createSVGElement('rect', {
+            x: 100, y: 100, width: 800, height: 800, fill: "#f8fafc"
+        }));
+
+        this.svg.appendChild(this.createSVGElement('line', {
+            x1: 500, y1: 100, x2: 500, y2: 900, stroke: "#9ca3af", "stroke-width": 1
+        }));
+        this.svg.appendChild(this.createSVGElement('line', {
+            x1: 100, y1: 500, x2: 900, y2: 500, stroke: "#9ca3af", "stroke-width": 1
+        }));
+
+        // The Circle
+        this.svg.appendChild(this.createSVGElement('circle', {
+            cx: centerX, cy: centerY, r: radius,
+            fill: "none", stroke: "#374151", "stroke-width": 3
+        }));
+
+        // 2. The Draggable Handle (The Point on Circle)
+        // Start at 0 degrees (Right) -> (700, 500)
+        const handleGroup = this.createSVGElement('g', {
+            class: 'draggable', id: 'trig-handle',
+            transform: `translate(${centerX + radius}, ${centerY})`
+        });
+
+        handleGroup.appendChild(this.createSVGElement('circle', {
+            r: 15, fill: "#ef4444", stroke: "white", "stroke-width": 3
+        }));
+        this.svg.appendChild(handleGroup);
+
+        // 3. Projections (Sine/Cosine lines)
+        // Groups to hold them so we can update
+        const projectionGroup = this.createSVGElement('g', { id: 'trig-projections' });
+        this.svg.appendChild(projectionGroup);
+
+        // Initialize projection lines (hidden or at start pos)
+        const sinLine = this.createSVGElement('line', {
+            id: 'sin-line', x1: 700, y1: 500, x2: 700, y2: 500,
+            stroke: "#3b82f6", "stroke-width": 4
+        }); // Blue for Sine (Height)
+
+        const cosLine = this.createSVGElement('line', {
+            id: 'cos-line', x1: 500, y1: 500, x2: 700, y2: 500,
+            stroke: "#10b981", "stroke-width": 4
+        }); // Green for Cosine (Width)
+
+        if (config.showSine) projectionGroup.appendChild(sinLine);
+        if (config.showCosine) projectionGroup.appendChild(cosLine);
+
+        // Labels
+        const infoText = this.createSVGElement('text', {
+            x: 800, y: 150, "font-size": "24px", fill: "#374151", id: 'trig-info'
+        });
+        infoText.textContent = "Drag the dot";
+        this.svg.appendChild(infoText);
+
+        this.makeDraggable();
+    }
+
+    // ... (helper methods like handleUnitCircleDrag) ...
+
+    handleUnitCircleDrag(element, rawX, rawY) {
+        // Constrain to circle radius=200, center=500,500
+        const centerX = 500;
+        const centerY = 500;
+        const radius = 200;
+
+        // Calculate angle from center
+        const dx = rawX - centerX;
+        const dy = rawY - centerY;
+        let theta = Math.atan2(dy, dx); // radians
+
+        // Constrain Position
+        const x = centerX + radius * Math.cos(theta);
+        const y = centerY + radius * Math.sin(theta);
+
+        element.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+
+        // Update Projections
+        this.updateTrigProjections(x, y, theta);
+    }
+
+    updateTrigProjections(x, y, theta) {
+        const sinLine = document.getElementById('sin-line');
+        const cosLine = document.getElementById('cos-line');
+        const info = document.getElementById('trig-info');
+
+        // Center is 500, 500
+        // Sin line: Vertical line from point (x,y) down to x-axis (x, 500)
+        // Wait, standard unit circle visual:
+        // Sine is vertical distance from x-axis. So line from (x,y) to (x, 500).
+        if (sinLine) {
+            sinLine.setAttribute('x1', x);
+            sinLine.setAttribute('y1', y);
+            sinLine.setAttribute('x2', x);
+            sinLine.setAttribute('y2', 500);
+        }
+
+        // Cosine is horizontal distance from y-axis. Line from (x,y) to (500, y).
+        // OR typically from origin (500,500) to (x, 500) along the axis.
+        // Let's do the triangle style: Origin->(x,500) and (x,500)->(x,y).
+        if (cosLine) {
+            cosLine.setAttribute('x1', 500);
+            cosLine.setAttribute('y1', 500);
+            cosLine.setAttribute('x2', x);
+            cosLine.setAttribute('y2', 500); // Project onto x-axis
+        }
+
+        if (info) {
+            // Convert to degrees for display, -Math.sin because SVG y is down
+            // Actually, let's keep it simple.
+            // Standard math: y is up. SVG: y is down.
+            // So sin(theta) in math = - ((y - 500) / 200)
+            const mathSin = -((y - 500) / 200);
+            const degrees = Math.round((-theta * 180 / Math.PI)); // Negate for math convention? 
+            // atan2(y, x). if y>0 (below center), theta is positive. 
+            // In math, below center is negative angle (usually).
+            // Let's just show raw Sin value.
+
+            info.textContent = `Sin: ${mathSin.toFixed(2)}`;
+        }
+    }
     renderGrid(config) {
         // 1. Grid Lines
         const gridSize = 50;
@@ -559,6 +691,28 @@ export class VisualManager {
             if (beam) {
                 beam.style.transition = "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
             }
+        }
+    }
+
+    highlightElement(id) {
+        // Map abstract IDs to specific selectors/elements if needed
+        let selector = id;
+        if (id === 'y-axis-line') selector = '#sin-line';
+        if (id === 'input-box') selector = 'rect[x="100"][y="400"]'; // specific to function machine
+
+        const el = this.svg.querySelector(selector) || document.getElementById(id);
+        if (el) {
+            // Visual Flash
+            const originalStroke = el.getAttribute('stroke');
+            const originalWidth = el.getAttribute('stroke-width');
+
+            el.setAttribute('stroke', '#facc15'); // Yellow warning color
+            el.setAttribute('stroke-width', '8');
+
+            setTimeout(() => {
+                el.setAttribute('stroke', originalStroke);
+                el.setAttribute('stroke-width', originalWidth);
+            }, 1000);
         }
     }
 

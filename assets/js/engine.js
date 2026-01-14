@@ -88,16 +88,29 @@ export class LessonEngine {
         const lesson = this.courseData.chapters[this.currentChapter].lessons[this.currentLesson];
         const feedbackEl = document.getElementById('quiz-feedback');
 
+        let hint = lesson.quiz.failureHints[optionIndex];
+        let hintText = "";
+
+        // Handle object-based hints (Phase 4)
+        if (typeof hint === 'object' && hint !== null) {
+            hintText = hint.text;
+            if (hint.highlight && window.visuals && window.visuals.highlightElement) {
+                window.visuals.highlightElement(hint.highlight);
+            }
+        } else {
+            hintText = hint || "Incorrect, try again.";
+        }
+
         if (optionIndex === lesson.quiz.correctIndex) {
-            feedbackEl.textContent = lesson.quiz.failureHints[optionIndex] || "Correct!";
+            feedbackEl.textContent = hintText || "Correct!";
             feedbackEl.className = "feedback-msg correct";
             // Enable next button or auto-advance logic could go here
         } else {
-            feedbackEl.textContent = lesson.quiz.failureHints[optionIndex] || "Incorrect, try again.";
+            feedbackEl.textContent = hintText;
             feedbackEl.className = "feedback-msg incorrect";
 
-            // Reactive Feedback
-            const wrongAnswerText = lesson.quiz.options[optionIndex]; // e.g., "5kg"
+            // Reactive Feedback (Scale Tipping / Visual Scenarios)
+            const wrongAnswerText = lesson.quiz.options[optionIndex];
             if (window.visuals && window.visuals.showScenario) {
                 window.visuals.showScenario(lesson.visualType, wrongAnswerText);
             }

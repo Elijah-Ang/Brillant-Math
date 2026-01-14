@@ -120,6 +120,42 @@
           }
         }
       ]
+    },
+    {
+      "id": "ch4_trig",
+      "title": "Phase 4: Cycles",
+      "lessons": [
+        {
+          "id": "4_1_sine",
+          "title": "The Height of the Ride",
+          "visualType": "unit_circle",
+          "instruction": "Drag the dot to the very top of the circle.",
+          "interactionConfig": {
+            "showSine": true,
+            "showCosine": false
+          },
+          "quiz": {
+            "question": "At the top (90°), what is the value of the vertical line (Sine)?",
+            "options": [
+              "0",
+              "0.5",
+              "1"
+            ],
+            "correctIndex": 2,
+            "failureHints": [
+              {
+                "text": "Look at the blue vertical line.",
+                "highlight": "y-axis-line"
+              },
+              {
+                "text": "It's higher than that.",
+                "highlight": "y-axis-line"
+              },
+              "Correct! The radius is 1."
+            ]
+          }
+        }
+      ]
     }
   ]
 }
