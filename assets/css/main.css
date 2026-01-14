@@ -6,7 +6,7 @@
     --success-color: #22c55e;
     --error-color: #ef4444;
     --border-color: #e5e7eb;
-    
+
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Inter', sans-serif;
 }
@@ -16,7 +16,8 @@ body {
     font-family: var(--font-body);
     background-color: var(--bg-color);
     color: var(--text-color);
-    overflow: hidden; /* App container handles scrolling */
+    overflow: hidden;
+    /* App container handles scrolling */
 }
 
 .app-container {
@@ -106,21 +107,221 @@ body {
     line-height: 1.6;
 }
 
-/* Mobile Layout */
+/* View Management */
+.view-section {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.view-section.hidden {
+    display: none;
+}
+
+.view-section.active {
+    display: block;
+}
+
+/* Landing Page (Hero) */
+#view-home {
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-container {
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hero-content {
+    max-width: 500px;
+}
+
+.hero-content h1 {
+    font-family: var(--font-heading);
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    color: var(--text-color);
+}
+
+.hero-content p {
+    font-size: 1.25rem;
+    color: #4b5563;
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+}
+
+.cta-btn.primary-large {
+    background: var(--text-color);
+    color: white;
+    padding: 1rem 2.5rem;
+    font-size: 1.125rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.cta-btn.primary-large:hover {
+    transform: translateY(-2px);
+    background: #000;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard View */
+#view-dashboard {
+    background: #f8fafc;
+    overflow-y: auto;
+}
+
+.dashboard-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.dashboard-header h2 {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+.chapter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.chapter-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 200px;
+}
+
+.chapter-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+    border-color: var(--accent-color);
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    background: #eff6ff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.card-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.card-info p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.mini-progress-bar {
+    height: 4px;
+    background: #f3f4f6;
+    border-radius: 2px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+}
+
+.mini-progress-bar div {
+    height: 100%;
+    background: var(--success-color);
+    width: 0%;
+    /* Default */
+}
+
+/* Back Nav in Lesson */
+.back-nav {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+}
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.icon-btn:hover {
+    background: #f9fafb;
+    transform: scale(1.05);
+}
+
+/* Mobile Adjustments */
 @media (max-width: 768px) {
     .app-container {
         flex-direction: column;
     }
-    
+
     .split-left {
         width: 100%;
-        height: 35vh; /* Pinned to top */
+        height: 40vh;
+        /* Pinned to top */
         border-right: none;
         border-bottom: 1px solid var(--border-color);
     }
-    
+
     .split-right {
         width: 100%;
-        height: 65vh;
+        height: 60vh;
+    }
+
+    .hero-container {
+        flex-direction: column-reverse;
+        text-align: center;
+        padding-top: 2rem;
+    }
+
+    .hero-visual {
+        margin-bottom: 2rem;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
     }
 }

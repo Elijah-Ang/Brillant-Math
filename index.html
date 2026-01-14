@@ -27,41 +27,91 @@
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Left Split: Visual Canvas -->
-        <div class="split-left" id="visual-canvas">
-            <div class="visual-container">
-                <!-- SVG Widgets will be injected here -->
-                <svg id="main-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Dynamic Content -->
+    <!-- View 1: Home (Landing Page) -->
+    <div id="view-home" class="view-section active">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Master Calculus Visually.</h1>
+                <p>No jargon. Just intuition. Experience the beauty of mathematics.</p>
+                <div class="hero-actions">
+                    <button id="btn-start-course" class="cta-btn primary-large">Start Learning</button>
+                    <!-- <button class="cta-btn secondary">View Syllabus</button> -->
+                </div>
+            </div>
+            <div class="hero-visual">
+                <!-- Simple SVG decorative element -->
+                <svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="200" cy="200" r="150" stroke="#e5e7eb" stroke-width="2" fill="none" />
+                    <circle cx="200" cy="200" r="100" stroke="#e5e7eb" stroke-width="2" fill="none" />
+                    <path d="M 50 200 Q 200 50 350 200" stroke="#3b82f6" stroke-width="4" fill="none" />
+                    <circle cx="200" cy="125" r="10" fill="#f59e0b" />
                 </svg>
             </div>
-            <div class="visual-overlay" id="visual-feedback">
-                <!-- Feedback animations -->
+        </div>
+    </div>
+
+    <!-- View 2: Dashboard (Chapter Map) -->
+    <div id="view-dashboard" class="view-section hidden">
+        <div class="dashboard-container">
+            <header class="dashboard-header">
+                <h2>Your Journey</h2>
+                <div class="user-profile">
+                    <span>Student</span>
+                    <div class="avatar"></div>
+                </div>
+            </header>
+            <div id="chapter-grid" class="chapter-grid">
+                <!-- Dynamic Content -->
             </div>
         </div>
+    </div>
 
-        <!-- Right Split: Content Scroll -->
-        <div class="split-right" id="content-scroll">
-            <div class="header">
-                <div class="course-breadcrumb">MathFlow / Algebra / Equality</div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="lesson-progress" style="width: 0%"></div>
+    <!-- View 3: Lesson (Interactive) -->
+    <div id="view-lesson" class="view-section hidden">
+        <div class="app-container">
+            <!-- Left Split: Visual Canvas -->
+            <div class="split-left" id="visual-canvas">
+                <div class="back-nav">
+                    <button id="btn-back-dashboard" class="icon-btn" title="Back to Dashboard">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="visual-container">
+                    <!-- SVG Widgets will be injected here -->
+                    <svg id="main-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Dynamic Content -->
+                    </svg>
+                </div>
+                <div class="visual-overlay" id="visual-feedback">
+                    <!-- Feedback animations -->
                 </div>
             </div>
 
-            <div class="content-stream" id="lesson-stream">
-                <!-- Interactive Cards will be injected here -->
-                <div class="lesson-intro">
-                    <h1>Welcome to MathFlow</h1>
-                    <p>Loading lesson content...</p>
+            <!-- Right Split: Content Scroll -->
+            <div class="split-right" id="content-scroll">
+                <div class="header">
+                    <div class="course-breadcrumb">MathFlow / Algebra / Equality</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="lesson-progress" style="width: 0%"></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="footer-nav">
-                <button class="nav-btn" id="prev-btn" disabled>Previous</button>
-                <div class="slide-indicator">1 / 1</div>
-                <button class="nav-btn primary" id="next-btn" disabled>Next</button>
+                <div class="content-stream" id="lesson-stream">
+                    <!-- Interactive Cards will be injected here -->
+                    <div class="lesson-intro">
+                        <h1>Welcome to MathFlow</h1>
+                        <p>Loading lesson content...</p>
+                    </div>
+                </div>
+
+                <div class="footer-nav">
+                    <button class="nav-btn" id="prev-btn" disabled>Previous</button>
+                    <div class="slide-indicator">1 / 1</div>
+                    <button class="nav-btn primary" id="next-btn" disabled>Next</button>
+                </div>
             </div>
         </div>
     </div>

@@ -15,11 +15,21 @@ export class LessonEngine {
     async init() {
         try {
             await this.loadCourseData();
-            this.renderLesson();
 
-            // Wire logic to UI
+            // Wire Global Buttons
+            document.getElementById('btn-start-course').addEventListener('click', () => this.startCourse());
+            document.getElementById('btn-back-dashboard').addEventListener('click', () => this.backToDashboard());
+
+            // Wire Lesson Navigation
             document.getElementById('prev-btn').addEventListener('click', () => this.prevLesson());
             document.getElementById('next-btn').addEventListener('click', () => this.nextLesson());
+
+            // Initial State
+            // If data loaded, we can render dashboard now to have it ready
+            this.renderDashboard();
+
+            // Start at Home
+            this.switchView('home');
 
         } catch (error) {
             console.error("Failed to load course data:", error);
@@ -32,7 +42,86 @@ export class LessonEngine {
         console.log("Course loaded:", this.courseData.course_title);
     }
 
+    /**
+     * View Router
+     * @param {string} viewId - 'home' | 'dashboard' | 'lesson'
+     */
+    switchView(viewId) {
+        // 1. Hide all
+        document.querySelectorAll('.view-section').forEach(el => {
+            el.classList.remove('active');
+            el.classList.add('hidden');
+        });
+
+        // 2. Show target
+        const target = document.getElementById(`view-${viewId}`);
+        if (target) {
+            target.classList.remove('hidden');
+            target.classList.add('active');
+        }
+
+        this.state.currentView = viewId;
+    }
+
+    renderDashboard() {
+        const grid = document.getElementById('chapter-grid');
+        if (!grid || !this.courseData) return;
+
+        grid.innerHTML = this.courseData.chapters.map((chapter, index) => {
+            // Mock Progress for demo (random 0-100 if not stored)
+            const progress = 0; // In real app, read from localStorage
+
+            return `
+            <div class="chapter-card" onclick="window.engine.startChapter(${index})">
+                <div class="card-icon">
+                    ${this.getIconForChapter(chapter.id)}
+                </div>
+                <div class="card-info">
+                    <h3>${chapter.title}</h3>
+                    <p>${chapter.lessons.length} Lessons</p>
+                    <div class="mini-progress-bar">
+                        <div style="width: ${progress}%"></div>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    getIconForChapter(id) {
+        // Simple SVG icons mapping
+        const icons = {
+            'ch1_algebra': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M12 3v18M5 10l7-7 7 7"/></svg>`, // Balance/Scale approx
+            'ch2_functions': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2" /><rect x="2" y="14" width="20" height="8" rx="2" ry="2" /><line x1="6" y1="6" x2="6" y2="6" /><line x1="6" y1="18" x2="6" y2="18" /></svg>`, // Machine
+            'ch3_graphs': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18" /><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" /></svg>`, // Graph
+            'ch4_trig': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><path d="M2 12h20" /><path d="M12 2v20" /><path d="M12 12l7.07-7.07" /></svg>`, // Circle
+            'ch5_calculus': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18c0-5 3-9 9-9 5 0 9-4 9-9" /><line x1="10" y1="12" x2="14" y2="6" /></svg>`, // Curve + Tangent
+            'ch6_integration': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z" /><line x1="4" y1="12" x2="20" y2="12" /></svg>`  // Blocks
+        };
+        return icons[id] || `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`;
+    }
+
+    // Navigation Actions
+    startCourse() {
+        this.switchView('dashboard');
+    }
+
+    startChapter(chapterIndex) {
+        this.currentChapter = chapterIndex;
+        this.currentLesson = 0;
+        this.renderLesson();
+        this.switchView('lesson');
+    }
+
+    backToDashboard() {
+        this.switchView('dashboard');
+    }
+
     renderLesson() {
+        // We might want to scroll to top
+        const rightSplit = document.getElementById('content-scroll');
+        if (rightSplit) rightSplit.scrollTop = 0;
+
         if (!this.courseData) return;
 
         const chapter = this.courseData.chapters[this.currentChapter];
@@ -111,8 +200,11 @@ export class LessonEngine {
 
             // UI Polish: Pulse Next Button
             const nextBtn = document.getElementById('next-btn');
-            nextBtn.classList.add('pulse');
-            nextBtn.disabled = false; // Just in case we forced logic later
+            if (nextBtn) {
+                nextBtn.classList.add('pulse');
+                nextBtn.disabled = false;
+            }
+
 
         } else {
             feedbackEl.textContent = hintText;
@@ -130,23 +222,25 @@ export class LessonEngine {
         const chapter = this.courseData.chapters[this.currentChapter];
         if (this.currentLesson < chapter.lessons.length - 1) {
             this.currentLesson++;
-            this.renderLesson();
-        } else if (this.currentChapter < this.courseData.chapters.length - 1) {
-            this.currentChapter++;
-            this.currentLesson = 0;
-            this.renderLesson();
+        } else {
+            // End of chapter - go to dashboard?
+            // For now, just stay on last lesson or loop?
+            // User requirement says "Next Button" state improved
+            // Let's add basic "Chapter Complete" logic -> Back to Dash
+            alert("Chapter Complete!");
+            this.backToDashboard();
+            return;
         }
+        this.renderLesson();
     }
 
     prevLesson() {
         if (this.currentLesson > 0) {
             this.currentLesson--;
             this.renderLesson();
-        } else if (this.currentChapter > 0) {
-            this.currentChapter--;
-            this.currentLesson = this.courseData.chapters[this.currentChapter].lessons.length - 1;
-            this.renderLesson();
         }
+        // If at start of chapter, do nothing? Or go back to dash?
+        // Standard is do nothing/disabled button.
     }
 }
 
