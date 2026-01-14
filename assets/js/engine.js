@@ -16,6 +16,11 @@ export class LessonEngine {
         try {
             await this.loadCourseData();
             this.renderLesson();
+
+            // Wire logic to UI
+            document.getElementById('prev-btn').addEventListener('click', () => this.prevLesson());
+            document.getElementById('next-btn').addEventListener('click', () => this.nextLesson());
+
         } catch (error) {
             console.error("Failed to load course data:", error);
         }
@@ -35,7 +40,7 @@ export class LessonEngine {
 
         // Update Header
         document.querySelector('.course-breadcrumb').textContent = `MathFlow / ${chapter.title} / ${lesson.title}`;
-        
+
         // Update Progress
         const progress = ((this.currentLesson + 1) / chapter.lessons.length) * 100;
         document.getElementById('lesson-progress').style.width = `${progress}%`;
@@ -66,7 +71,7 @@ export class LessonEngine {
                 </div>
             </div>
         `;
-        
+
         // Trigger Visual Update (Event or direct call)
         this.updateVisuals(lesson);
     }
@@ -82,7 +87,7 @@ export class LessonEngine {
     checkAnswer(optionIndex) {
         const lesson = this.courseData.chapters[this.currentChapter].lessons[this.currentLesson];
         const feedbackEl = document.getElementById('quiz-feedback');
-        
+
         if (optionIndex === lesson.quiz.correctIndex) {
             feedbackEl.textContent = lesson.quiz.failureHints[optionIndex] || "Correct!";
             feedbackEl.className = "feedback-msg correct";
@@ -90,6 +95,12 @@ export class LessonEngine {
         } else {
             feedbackEl.textContent = lesson.quiz.failureHints[optionIndex] || "Incorrect, try again.";
             feedbackEl.className = "feedback-msg incorrect";
+
+            // Reactive Feedback
+            const wrongAnswerText = lesson.quiz.options[optionIndex]; // e.g., "5kg"
+            if (window.visuals && window.visuals.showScenario) {
+                window.visuals.showScenario(lesson.visualType, wrongAnswerText);
+            }
         }
     }
 

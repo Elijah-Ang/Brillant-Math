@@ -10,25 +10,83 @@
           "title": "What is Equality?",
           "visualType": "balance_scale_simple",
           "instruction": "Make the scale level.",
-          "interactionConfig": { "leftWeight": 5, "rightWeight": 2, "target": "equal" },
+          "interactionConfig": {
+            "leftWeight": 5,
+            "rightWeight": 2,
+            "target": "equal"
+          },
           "quiz": {
             "question": "To make this equal, how much weight did you add to the right?",
-            "options": ["2kg", "3kg", "5kg"],
+            "options": [
+              "2kg",
+              "3kg",
+              "5kg"
+            ],
             "correctIndex": 1,
-            "failureHints": ["Too light.", "That works!", "Too heavy."]
+            "failureHints": [
+              "Too light.",
+              "That works!",
+              "Too heavy."
+            ]
           }
         },
         {
-           "id": "1_2_variables",
-           "title": "The Mystery Box",
-           "visualType": "balance_scale_simple",
-           "instruction": "Isolate the box.",
-           "interactionConfig": { "leftWeight": "box+2", "rightWeight": 5, "target": "isolate" },
-           "quiz": {
+          "id": "1_2_variables",
+          "title": "The Mystery Box",
+          "visualType": "balance_scale_simple",
+          "instruction": "Isolate the box.",
+          "interactionConfig": {
+            "leftWeight": "box+2",
+            "rightWeight": 5,
+            "target": "isolate"
+          },
+          "quiz": {
             "question": "What is the weight of the box?",
-            "options": ["2", "3", "5"],
+            "options": [
+              "2",
+              "3",
+              "5"
+            ],
             "correctIndex": 1,
-            "failureHints": ["Check your math.", "Correct!", "Not quite."]
+            "failureHints": [
+              "Check your math.",
+              "Correct!",
+              "Not quite."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ch2_functions",
+      "title": "Phase 2: The Machine",
+      "lessons": [
+        {
+          "id": "2_1_input_output",
+          "title": "The Factory",
+          "visualType": "function_machine",
+          "instruction": "Drag the number into the machine.",
+          "interactionConfig": {
+            "rule": "+ 2",
+            "inputs": [
+              3,
+              5
+            ],
+            "target": "output"
+          },
+          "quiz": {
+            "question": "If you put 3 into the machine, what comes out?",
+            "options": [
+              "3",
+              "5",
+              "6"
+            ],
+            "correctIndex": 1,
+            "failureHints": [
+              "Nothing happened?",
+              "Correct! 3 + 2 = 5",
+              "Check the rule."
+            ]
           }
         }
       ]
