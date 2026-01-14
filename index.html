@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathFlow - Interactive Learning</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+        crossorigin="anonymous"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/interactive.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Left Split: Visual Canvas -->
+        <div class="split-left" id="visual-canvas">
+            <div class="visual-container">
+                <!-- SVG Widgets will be injected here -->
+                <svg id="main-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Dynamic Content -->
+                </svg>
+            </div>
+            <div class="visual-overlay" id="visual-feedback">
+                <!-- Feedback animations -->
+            </div>
+        </div>
+
+        <!-- Right Split: Content Scroll -->
+        <div class="split-right" id="content-scroll">
+            <div class="header">
+                <div class="course-breadcrumb">MathFlow / Algebra / Equality</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="lesson-progress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="content-stream" id="lesson-stream">
+                <!-- Interactive Cards will be injected here -->
+                <div class="lesson-intro">
+                    <h1>Welcome to MathFlow</h1>
+                    <p>Loading lesson content...</p>
+                </div>
+            </div>
+
+            <div class="footer-nav">
+                <button class="nav-btn" id="prev-btn" disabled>Previous</button>
+                <div class="slide-indicator">1 / 1</div>
+                <button class="nav-btn primary" id="next-btn" disabled>Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { LessonEngine } from './assets/js/engine.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('MathFlow initializing...');
+            // Initialize engine when ready
+            const engine = new LessonEngine();
+            engine.init();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,37 @@
+{
+  "course_title": "Foundational Calculus",
+  "chapters": [
+    {
+      "id": "ch1_algebra",
+      "title": "Phase 1: The Language of Balance",
+      "lessons": [
+        {
+          "id": "1_1_equality",
+          "title": "What is Equality?",
+          "visualType": "balance_scale_simple",
+          "instruction": "Make the scale level.",
+          "interactionConfig": { "leftWeight": 5, "rightWeight": 2, "target": "equal" },
+          "quiz": {
+            "question": "To make this equal, how much weight did you add to the right?",
+            "options": ["2kg", "3kg", "5kg"],
+            "correctIndex": 1,
+            "failureHints": ["Too light.", "That works!", "Too heavy."]
+          }
+        },
+        {
+           "id": "1_2_variables",
+           "title": "The Mystery Box",
+           "visualType": "balance_scale_simple",
+           "instruction": "Isolate the box.",
+           "interactionConfig": { "leftWeight": "box+2", "rightWeight": 5, "target": "isolate" },
+           "quiz": {
+            "question": "What is the weight of the box?",
+            "options": ["2", "3", "5"],
+            "correctIndex": 1,
+            "failureHints": ["Check your math.", "Correct!", "Not quite."]
+          }
+        }
+      ]
+    }
+  ]
+}

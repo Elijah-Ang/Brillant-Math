@@ -1,0 +1,60 @@
+/* SVG Interactive Styles */
+
+/* Common */
+.draggable {
+    cursor: grab;
+    transition: fill 0.2s;
+}
+
+.draggable:active {
+    cursor: grabbing;
+}
+
+/* Balance Scale visual */
+.scale-base {
+    fill: #4b5563;
+}
+
+.scale-beam {
+    fill: #6b7280;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.1s ease-out;
+    /* Smooth movement but fast enough for interaction */
+}
+
+.scale-plate {
+    fill: #9ca3af;
+}
+
+.weight-block {
+    stroke: #374151;
+    stroke-width: 2;
+}
+
+.weight-block text {
+    fill: white;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 24px;
+    pointer-events: none;
+    /* Let clicks pass through to rect */
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.weight-box {
+    fill: var(--accent-color);
+}
+
+.weight-circle {
+    fill: #f59e0b;
+    /* Amber */
+}
+
+/* Highlight for active/target areas */
+.drop-zone {
+    fill: rgba(59, 130, 246, 0.1);
+    stroke: var(--accent-color);
+    stroke-dasharray: 4;
+}
