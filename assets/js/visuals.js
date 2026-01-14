@@ -30,6 +30,9 @@ export class VisualManager {
             case 'slope_scanner':
                 if (this.renderSlopeScanner) this.renderSlopeScanner(config);
                 break;
+            case 'riemann_sum':
+                if (this.renderRiemannSum) this.renderRiemannSum(config);
+                break;
             default:
                 console.warn(`Unknown visual type: ${type}`);
         }
@@ -466,33 +469,114 @@ export class VisualManager {
     makeDraggable() {
         // Define Drag Strategies
         const DRAG_STRATEGIES = {
-            'grid-point': (visuals, el, x, y) => {
-                // Grid Logic: Update Label live
-                // Calculate Grid Coordinates
-                // Origin: 500, 500. Grid: 50px.
-                const gridX = Math.round((x - 500) / 50);
-                const gridY = Math.round((500 - y) / 50);
+            'grid-point': {
+                onDrag: (visuals, el, x, y) => {
+                    // Grid Logic: Update Label live
+                    // Calculate Grid Coordinates
+                    // Origin: 500, 500. Grid: 50px.
+                    const gridX = Math.round((x - 500) / 50);
+                    const gridY = Math.round((500 - y) / 50);
 
-                const label = el.querySelector('#coord-label');
-                if (label) label.textContent = `(${gridX}, ${gridY})`;
+                    const label = el.querySelector('#coord-label');
+                    if (label) label.textContent = `(${gridX}, ${gridY})`;
 
-                // Allow standard drag but maybe snap later?
-                // For live drag, we usually just follow mouse or snap.
-                // The original code moved the element to x,y then snapped on end.
-                // So here we just move it.
-                el.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+                    // Allow standard drag but maybe snap later?
+                    // For live drag, we usually just follow mouse or snap.
+                    // The original code moved the element to x,y then snapped on end.
+                    // So here we just move it.
+                    el.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+                },
+                onEnd: (visuals, el) => {
+                    const transform = el.getAttributeNS(null, "transform");
+                    const pos = visuals.getTranslate(transform);
+
+                    // Grid Logic: Snap to nearest grid intersection
+                    const gridX = Math.round((pos.x - 500) / 50);
+                    const gridY = Math.round((500 - pos.y) / 50);
+
+                    const snapX = 500 + (gridX * 50);
+                    const snapY = 500 - (gridY * 50);
+
+                    el.setAttributeNS(null, "transform", `translate(${snapX}, ${snapY})`);
+
+                    // Visual Feedback for Target (3, 2)
+                    if (gridX === 3 && gridY === 2) {
+                        el.querySelector('circle').setAttribute('fill', '#22c55e');
+                    } else {
+                        el.querySelector('circle').setAttribute('fill', '#3b82f6');
+                    }
+                }
             },
-            'trig-handle': (visuals, el, x, y) => {
-                // Critical Fix: Call the Unit Circle constraint logic
-                visuals.handleUnitCircleDrag(el, x, y);
+            'trig-handle': {
+                onDrag: (visuals, el, x, y) => {
+                    // Critical Fix: Call the Unit Circle constraint logic
+                    visuals.handleUnitCircleDrag(el, x, y);
+                },
+                onEnd: (visuals, el) => {
+                    // No specific end logic, stays on circle
+                }
             },
-            'slope-scanner': (visuals, el, x, y) => {
-                // Constrain to function curve y = x^2
-                // We drag X, and Y is determined.
-                visuals.handleSlopeScannerDrag(el, x, y);
+            'slope-scanner': {
+                onDrag: (visuals, el, x, y) => {
+                    visuals.handleSlopeScannerDrag(el, x, y);
+                },
+                onEnd: (visuals, el) => {
+                    // No specific end logic, stays on curve
+                }
             },
-            'default': (visuals, el, x, y) => {
-                el.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+            'riemann-slider': {
+                onDrag: (visuals, el, x, y) => {
+                    visuals.handleRiemannSliderDrag(el, x, y);
+                },
+                onEnd: (visuals, el) => {
+                    // Check for success condition (N >= 50) ? 
+                    // Let's just do it in drag or let engine check.
+                }
+            },
+            'default': {
+                onDrag: (visuals, el, x, y) => {
+                    el.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+                },
+                onEnd: (visuals, el) => {
+                    const transform = el.getAttributeNS(null, "transform");
+                    const pos = visuals.getTranslate(transform);
+
+                    // Check Collisions with Drop Zones (for Balance Scale / Machine)
+                    let droppedZone = null;
+                    for (const zone of visuals.dropZones) {
+                        if (pos.x >= zone.x && pos.x <= zone.x + zone.width &&
+                            pos.y >= zone.y && pos.y <= zone.y + zone.height) {
+                            droppedZone = zone;
+                            break;
+                        }
+                    }
+
+                    if (droppedZone) {
+                        console.log("Dropped in zone:", droppedZone.id);
+
+                        if (droppedZone.type === 'scale_plate') {
+                            // Snap to plate center (approx)
+                            el.setAttributeNS(null, "transform", `translate(${droppedZone.x + 60}, ${droppedZone.y + 170})`);
+
+                            // Trigger Logic
+                            if (droppedZone.targetVal === 'right' && el.dataset.val == "3") {
+                                visuals.updateBeamRotation(5, 5); // Balance!
+                            }
+                        } else if (droppedZone.type === 'function_input') {
+                            // Snap to input box
+                            el.setAttributeNS(null, "transform", `translate(${droppedZone.x + 50}, ${droppedZone.y + 50})`);
+
+                            // Trigger Animation if implemented
+                            if (visuals.animateProcess) {
+                                visuals.animateProcess(el, "+ 2"); // Hardcoded rule for now
+                            }
+                        }
+                    } else {
+                        // Reset to bank/start (simplified)
+                        // In a real app, store original pos on startDrag
+                        el.setAttributeNS(null, "transform", `translate(500, 900)`);
+                    }
+                }
             }
         };
 
@@ -532,83 +616,18 @@ export class VisualManager {
 
                 // Execute Strategy
                 const strategy = DRAG_STRATEGIES[selectedElement.id] || DRAG_STRATEGIES['default'];
-                strategy(this, selectedElement, x, y);
+                if (strategy && strategy.onDrag) {
+                    strategy.onDrag(this, selectedElement, x, y);
+                }
             }
         };
 
         const endDrag = (evt) => {
             if (selectedElement) {
-                const transform = selectedElement.getAttributeNS(null, "transform");
-                const pos = this.getTranslate(transform);
-
-                // Strategy-specific end logic could go here too, but for now we keep the shared mix
-                // Ideally this moves to strategies 'onDragEnd' too.
-
-                // Grid Logic: Snap to nearest grid intersection
-                if (selectedElement.id === 'grid-point') {
-                    const gridX = Math.round((pos.x - 500) / 50);
-                    const gridY = Math.round((500 - pos.y) / 50);
-
-                    const snapX = 500 + (gridX * 50);
-                    const snapY = 500 - (gridY * 50);
-
-                    selectedElement.setAttributeNS(null, "transform", `translate(${snapX}, ${snapY})`);
-
-                    // Visual Feedback for Target (3, 2)
-                    if (gridX === 3 && gridY === 2) {
-                        selectedElement.querySelector('circle').setAttribute('fill', '#22c55e');
-                    } else {
-                        selectedElement.querySelector('circle').setAttribute('fill', '#3b82f6');
-                    }
-                    selectedElement = null;
-                    return;
+                const strategy = DRAG_STRATEGIES[selectedElement.id] || DRAG_STRATEGIES['default'];
+                if (strategy && strategy.onEnd) {
+                    strategy.onEnd(this, selectedElement);
                 }
-
-                // For Unit Circle, we don't need drop zones logic, it just stays on circle.
-                // So if it was the handle, we are done.
-                // Specific IDs that don't need drop collision
-                if (['trig-handle', 'slope-scanner'].includes(selectedElement.id)) {
-                    selectedElement = null;
-                    return;
-                }
-
-
-                // Check Collisions with Drop Zones (for Balance Scale / Machine)
-                let droppedZone = null;
-                for (const zone of this.dropZones) {
-                    if (pos.x >= zone.x && pos.x <= zone.x + zone.width &&
-                        pos.y >= zone.y && pos.y <= zone.y + zone.height) {
-                        droppedZone = zone;
-                        break;
-                    }
-                }
-
-                if (droppedZone) {
-                    console.log("Dropped in zone:", droppedZone.id);
-
-                    if (droppedZone.type === 'scale_plate') {
-                        // Snap to plate center (approx)
-                        selectedElement.setAttributeNS(null, "transform", `translate(${droppedZone.x + 60}, ${droppedZone.y + 170})`);
-
-                        // Trigger Logic
-                        if (droppedZone.targetVal === 'right' && selectedElement.dataset.val == "3") {
-                            this.updateBeamRotation(5, 5); // Balance!
-                        }
-                    } else if (droppedZone.type === 'function_input') {
-                        // Snap to input box
-                        selectedElement.setAttributeNS(null, "transform", `translate(${droppedZone.x + 50}, ${droppedZone.y + 50})`);
-
-                        // Trigger Animation if implemented
-                        if (this.animateProcess) {
-                            this.animateProcess(selectedElement, "+ 2"); // Hardcoded rule for now
-                        }
-                    }
-                } else {
-                    // Reset to bank/start (simplified)
-                    // In a real app, store original pos on startDrag
-                    selectedElement.setAttributeNS(null, "transform", `translate(500, 900)`);
-                }
-
                 selectedElement = null;
             }
         };
@@ -690,7 +709,141 @@ export class VisualManager {
 
         this.svg.appendChild(scannerGroup);
 
+        // Ensure to call makeDraggable at end
         this.makeDraggable();
+    }
+
+    /**
+     * Renders Riemann Sum Integration visual.
+     * Config: { function: "x^2/10", range: [0, 10] }
+     */
+    renderRiemannSum(config) {
+        // 1. Axes
+        // Origin: 100, 800. 
+        // X-axis: 0 to 10 (scale 80px per unit -> 800px width).
+        // Y-axis: 0 to 10 (scale 60px per unit -> 600px height).
+
+        this.svg.appendChild(this.createSVGElement('line', {
+            x1: 100, y1: 800, x2: 900, y2: 800, stroke: "#374151", "stroke-width": 3
+        }));
+        this.svg.appendChild(this.createSVGElement('line', {
+            x1: 100, y1: 200, x2: 100, y2: 800, stroke: "#374151", "stroke-width": 3
+        }));
+
+        // 2. The Curve y = x^2 / 10
+        // f(x) = x^2 / 10. Max at x=10 is 100/10=10.
+        // Screen X = 100 + x*80
+        // Screen Y = 800 - y*60
+
+        let pathD = "M ";
+        for (let ix = 0; ix <= 10; ix += 0.1) {
+            const px = 100 + ix * 80;
+            const py = 800 - (Math.pow(ix, 2) / 10) * 60;
+            pathD += `${px} ${py} L `;
+        }
+        pathD = pathD.slice(0, -3);
+
+        this.svg.appendChild(this.createSVGElement('path', {
+            d: pathD, fill: "none", stroke: "#3b82f6", "stroke-width": 4
+        }));
+
+        // 3. Rectangle Container
+        const rectGroup = this.createSVGElement('g', { id: 'riemann-rects' });
+        this.svg.appendChild(rectGroup);
+
+        // 4. Slider Control (N)
+        // Slider Line
+        this.svg.appendChild(this.createSVGElement('line', {
+            x1: 300, y1: 100, x2: 700, y2: 100, stroke: "#9ca3af", "stroke-width": 4, "stroke-linecap": "round"
+        }));
+
+        // Slider Handle
+        // Range 2 to 50. Line Length 400px.
+        // Start at N=2 (Left side) -> x=300.
+        const sliderGroup = this.createSVGElement('g', {
+            class: 'draggable', id: 'riemann-slider',
+            transform: `translate(300, 100)`,
+            'data-n': 2
+        });
+
+        sliderGroup.appendChild(this.createSVGElement('circle', {
+            r: 15, fill: "#f59e0b", stroke: "white", "stroke-width": 3
+        }));
+
+        // Label above slider
+        const label = this.createSVGElement('text', {
+            x: 0, y: -25, "text-anchor": "middle", "font-size": "20px", fill: "#374151",
+            "font-weight": "bold", id: 'slider-label'
+        });
+        label.textContent = "N = 2";
+        sliderGroup.appendChild(label);
+
+        this.svg.appendChild(sliderGroup);
+
+        // Initial Render of Rects
+        this.updateRiemannRects(2);
+
+        this.makeDraggable();
+    }
+
+    updateRiemannRects(n) {
+        const group = document.getElementById('riemann-rects');
+        if (!group) return;
+        group.innerHTML = '';
+
+        // Domain [0, 10]
+        const width = 10; // units
+        const dx = width / n;
+
+        for (let i = 0; i < n; i++) {
+            // Left Riemann Sum
+            const xVal = i * dx;
+            const yVal = Math.pow(xVal, 2) / 10;
+
+            // Screen Coords
+            // x start = 100 + xVal * 80
+            // width = dx * 80 - 1 (gap)
+            // height = yVal * 60
+            // y start = 800 - height
+
+            const rectX = 100 + xVal * 80;
+            const rectW = dx * 80 - 1;
+            const rectH = yVal * 60;
+            const rectY = 800 - rectH;
+
+            if (rectH > 0) {
+                group.appendChild(this.createSVGElement('rect', {
+                    x: rectX, y: rectY, width: Math.max(1, rectW), height: rectH,
+                    fill: "rgba(59, 130, 246, 0.3)", stroke: "#2563eb", "stroke-width": 1
+                }));
+            }
+        }
+    }
+
+    handleRiemannSliderDrag(element, rawX, rawY) {
+        // Constrain to slider line: y=100, x=[300, 700]
+        const y = 100;
+        let x = rawX;
+        if (x < 300) x = 300;
+        if (x > 700) x = 700;
+
+        element.setAttributeNS(null, "transform", `translate(${x}, ${y})`);
+
+        // Calculate N
+        // 300->2, 700->50
+        // Percent = (x - 300) / 400
+        const percent = (x - 300) / 400;
+        const n = Math.round(2 + percent * 48); // 2 to 50
+
+        // Update Label
+        const label = element.querySelector('#slider-label');
+        if (label) label.textContent = `N = ${n}`;
+
+        // Update Rects (Throttling would be good but JS is fast enough for 50 SVG rects)
+        if (element.dataset.n != n) {
+            this.updateRiemannRects(n);
+            element.dataset.n = n;
+        }
     }
 
     handleSlopeScannerDrag(element, rawX, rawY) {

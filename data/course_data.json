@@ -186,6 +186,39 @@
           }
         }
       ]
+    },
+    {
+      "id": "ch6_integration",
+      "title": "Phase 6: The Area Problem",
+      "lessons": [
+        {
+          "id": "6_1_area",
+          "title": "The Lego Problem",
+          "visualType": "riemann_sum",
+          "instruction": "Drag the slider to increase the number of rectangles (N).",
+          "interactionConfig": {
+            "function": "x^2/10",
+            "range": [
+              0,
+              10
+            ]
+          },
+          "quiz": {
+            "question": "What happens to the empty white space (error) as you add more rectangles?",
+            "options": [
+              "It gets bigger",
+              "It gets smaller",
+              "It stays the same"
+            ],
+            "correctIndex": 1,
+            "failureHints": [
+              "Look closely at the gaps above the rectangles.",
+              "Correct! As N -> Infinity, Error -> 0.",
+              "Are the blocks fitting the curve better or worse?"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

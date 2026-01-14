@@ -104,7 +104,16 @@ export class LessonEngine {
         if (optionIndex === lesson.quiz.correctIndex) {
             feedbackEl.textContent = hintText || "Correct!";
             feedbackEl.className = "feedback-msg correct";
-            // Enable next button or auto-advance logic could go here
+
+            // UI Polish: Flash the button
+            const btns = document.querySelectorAll('.quiz-btn');
+            if (btns[optionIndex]) btns[optionIndex].classList.add('correct-flash');
+
+            // UI Polish: Pulse Next Button
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.classList.add('pulse');
+            nextBtn.disabled = false; // Just in case we forced logic later
+
         } else {
             feedbackEl.textContent = hintText;
             feedbackEl.className = "feedback-msg incorrect";
