@@ -20,6 +20,15 @@ export class LessonEngine {
             document.getElementById('btn-start-course').addEventListener('click', () => this.startCourse());
             document.getElementById('btn-back-dashboard').addEventListener('click', () => this.backToDashboard());
 
+            // Wire Zen Toggle
+            document.getElementById('btn-zen-toggle').addEventListener('click', () => {
+                document.querySelector('.split-left').classList.toggle('zen-mode');
+            });
+
+            // Wire Modal Buttons
+            document.getElementById('btn-modal-replay').addEventListener('click', () => this.hideVictoryModal());
+            document.getElementById('btn-modal-next').addEventListener('click', () => this.advanceChapter());
+
             // Wire Lesson Navigation
             document.getElementById('prev-btn').addEventListener('click', () => this.prevLesson());
             document.getElementById('next-btn').addEventListener('click', () => this.nextLesson());
@@ -47,17 +56,30 @@ export class LessonEngine {
      * @param {string} viewId - 'home' | 'dashboard' | 'lesson'
      */
     switchView(viewId) {
-        // 1. Hide all
-        document.querySelectorAll('.view-section').forEach(el => {
-            el.classList.remove('active');
-            el.classList.add('hidden');
-        });
+        // 1. Fade out current
+        const currentViewId = this.state.currentView;
+        if (currentViewId) {
+            const current = document.getElementById(`view-${currentViewId}`);
+            if (current) {
+                current.classList.remove('visible');
+                // Wait for opacity transition to finish before display:none
+                setTimeout(() => {
+                    current.classList.remove('active');
+                }, 300);
+            }
+        }
 
-        // 2. Show target
+        // 2. Fade in target (allow overlap or sequential? Sequential seems safer for simple DOM)
         const target = document.getElementById(`view-${viewId}`);
         if (target) {
+            // Immediate block display to prepare for fade in
             target.classList.remove('hidden');
             target.classList.add('active');
+
+            // Small Tick to trigger CSS transition
+            setTimeout(() => {
+                target.classList.add('visible');
+            }, 50);
         }
 
         this.state.currentView = viewId;
@@ -68,8 +90,14 @@ export class LessonEngine {
         if (!grid || !this.courseData) return;
 
         grid.innerHTML = this.courseData.chapters.map((chapter, index) => {
-            // Mock Progress for demo (random 0-100 if not stored)
-            const progress = 0; // In real app, read from localStorage
+            // Clean Re-design: Topic Tag instead of progress bar
+            // Use ID prefixes to guess topic if not explicit
+            let topic = "Math";
+            if (chapter.id.includes("algebra")) topic = "Algebra";
+            if (chapter.id.includes("functions")) topic = "Functions";
+            if (chapter.id.includes("graph")) topic = "Graphing";
+            if (chapter.id.includes("trig")) topic = "Trigonometry";
+            if (chapter.id.includes("calculus") || chapter.id.includes("integration")) topic = "Calculus";
 
             return `
             <div class="chapter-card" onclick="window.engine.startChapter(${index})">
@@ -79,9 +107,7 @@ export class LessonEngine {
                 <div class="card-info">
                     <h3>${chapter.title}</h3>
                     <p>${chapter.lessons.length} Lessons</p>
-                    <div class="mini-progress-bar">
-                        <div style="width: ${progress}%"></div>
-                    </div>
+                    <span class="topic-tag">${topic}</span>
                 </div>
             </div>
             `;
@@ -130,9 +156,8 @@ export class LessonEngine {
         // Update Header
         document.querySelector('.course-breadcrumb').textContent = `MathFlow / ${chapter.title} / ${lesson.title}`;
 
-        // Update Progress
-        const progress = ((this.currentLesson + 1) / chapter.lessons.length) * 100;
-        document.getElementById('lesson-progress').style.width = `${progress}%`;
+        // Update Progress (Removed bar, but can keep internal logic or simple text if needed)
+        // document.getElementById('lesson-progress').style.width = `${progress}%`;
 
         // Update Navigation
         document.querySelector('.slide-indicator').textContent = `${this.currentLesson + 1} / ${chapter.lessons.length}`;
@@ -222,16 +247,42 @@ export class LessonEngine {
         const chapter = this.courseData.chapters[this.currentChapter];
         if (this.currentLesson < chapter.lessons.length - 1) {
             this.currentLesson++;
+            this.renderLesson();
         } else {
-            // End of chapter - go to dashboard?
-            // For now, just stay on last lesson or loop?
-            // User requirement says "Next Button" state improved
-            // Let's add basic "Chapter Complete" logic -> Back to Dash
-            alert("Chapter Complete!");
-            this.backToDashboard();
-            return;
+            // End of chapter - Show Victory Modal
+            this.showVictoryModal();
         }
-        this.renderLesson();
+    }
+
+    showVictoryModal() {
+        const modal = document.getElementById('victory-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            // Small tick for fade in
+            setTimeout(() => modal.classList.add('visible'), 10);
+        }
+    }
+
+    hideVictoryModal() {
+        const modal = document.getElementById('victory-modal');
+        if (modal) {
+            modal.classList.remove('visible');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+    }
+
+    advanceChapter() {
+        this.hideVictoryModal();
+        // Go to next chapter if available, else Dashboard
+        if (this.currentChapter < this.courseData.chapters.length - 1) {
+            this.currentChapter++;
+            this.currentLesson = 0;
+            this.renderLesson();
+        } else {
+            // Course Complete
+            alert("Course Complete! Returning to Dashboard.");
+            this.backToDashboard();
+        }
     }
 
     prevLesson() {

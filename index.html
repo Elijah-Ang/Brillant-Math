@@ -79,6 +79,13 @@
                         </svg>
                     </button>
                 </div>
+                <!-- Zen Mode Toggle -->
+                <button id="btn-zen-toggle" class="icon-btn zen-toggle" title="Expand View">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                    </svg>
+                </button>
+
                 <div class="visual-container">
                     <!-- SVG Widgets will be injected here -->
                     <svg id="main-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
@@ -112,6 +119,24 @@
                     <div class="slide-indicator">1 / 1</div>
                     <button class="nav-btn primary" id="next-btn" disabled>Next</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="victory-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <h2>Concept Mastered!</h2>
+            <p>You've completed this stepping stone.</p>
+            <div class="modal-actions">
+                <button id="btn-modal-replay" class="modal-btn secondary">Replay</button>
+                <button id="btn-modal-next" class="modal-btn primary">Next Chapter</button>
             </div>
         </div>
     </div>

@@ -107,19 +107,31 @@ body {
     line-height: 1.6;
 }
 
-/* View Management */
+/* View Management & Transitions */
 .view-section {
     width: 100%;
     height: 100vh;
     overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    display: none;
+    /* Default hidden state */
+}
+
+/* Base state for active but potentially fading in */
+.view-section.active {
+    display: block;
+    /* Opacity will be set to 1 via JS after a tick to trigger transition */
+}
+
+/* Separate utility for fully visible */
+.view-section.visible {
+    opacity: 1;
 }
 
 .view-section.hidden {
     display: none;
-}
-
-.view-section.active {
-    display: block;
+    opacity: 0;
 }
 
 /* Landing Page (Hero) */
@@ -208,6 +220,7 @@ body {
     gap: 2rem;
 }
 
+/* Dashboard Redesign (Topic Tags) */
 .chapter-card {
     background: white;
     border: 1px solid var(--border-color);
@@ -217,8 +230,11 @@ body {
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    /* Align top */
     min-height: 200px;
+    position: relative;
+    overflow: hidden;
 }
 
 .chapter-card:hover {
@@ -263,6 +279,136 @@ body {
     background: var(--success-color);
     width: 0%;
     /* Default */
+}
+
+.topic-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #f3f4f6;
+    color: #4b5563;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: auto;
+    /* Push to bottom */
+    width: fit-content;
+}
+
+/* Zen Mode */
+.zen-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.split-left.zen-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    /* Full screen */
+    height: 100vh;
+    z-index: 999;
+}
+
+.split-left.zen-mode .back-nav {
+    display: none;
+    /* Hide back button in zen mode to focus */
+}
+
+/* Victory Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    /* Dim background */
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    /* Click through when hidden */
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-overlay.visible .modal-content {
+    transform: translateY(0);
+}
+
+.modal-icon {
+    width: 80px;
+    height: 80px;
+    background: #f0fdf4;
+    /* Light green */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 1.5rem auto;
+}
+
+.modal-content h2 {
+    font-family: var(--font-heading);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+}
+
+.modal-content p {
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s;
+}
+
+.modal-btn:hover {
+    transform: scale(1.05);
+}
+
+.modal-btn.primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.modal-btn.secondary {
+    background: #f3f4f6;
+    color: var(--text-color);
 }
 
 /* Back Nav in Lesson */
