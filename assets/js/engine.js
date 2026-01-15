@@ -56,30 +56,15 @@ export class LessonEngine {
      * @param {string} viewId - 'home' | 'dashboard' | 'lesson'
      */
     switchView(viewId) {
-        // 1. Fade out current
-        const currentViewId = this.state.currentView;
-        if (currentViewId) {
-            const current = document.getElementById(`view-${currentViewId}`);
-            if (current) {
-                current.classList.remove('visible');
-                // Wait for opacity transition to finish before display:none
-                setTimeout(() => {
-                    current.classList.remove('active');
-                }, 300);
-            }
-        }
+        // Hide all views
+        document.querySelectorAll('.view-section').forEach(el => {
+            el.classList.remove('active');
+        });
 
-        // 2. Fade in target (allow overlap or sequential? Sequential seems safer for simple DOM)
+        // Show target view
         const target = document.getElementById(`view-${viewId}`);
         if (target) {
-            // Immediate block display to prepare for fade in
-            target.classList.remove('hidden');
             target.classList.add('active');
-
-            // Small Tick to trigger CSS transition
-            setTimeout(() => {
-                target.classList.add('visible');
-            }, 50);
         }
 
         this.state.currentView = viewId;
