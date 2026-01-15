@@ -144,12 +144,16 @@
     <!-- Scripts -->
     <script type="module">
         import { LessonEngine } from './assets/js/engine.js';
+        import { VisualManager } from './assets/js/visuals.js';
 
         document.addEventListener('DOMContentLoaded', () => {
             console.log('MathFlow initializing...');
-            // Initialize engine when ready
-            const engine = new LessonEngine();
-            engine.init();
+            // Initialize visuals first
+            window.visuals = new VisualManager();
+
+            // Use the global engine instance (set in engine.js at module level)
+            // This ensures onclick handlers in dynamically rendered HTML use the same instance
+            window.engine.init();
         });
     </script>
 </body>
