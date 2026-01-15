@@ -75,6 +75,7 @@ body {
     top: 0;
     z-index: 10;
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .course-breadcrumb {
@@ -331,6 +332,7 @@ body {
     background: rgba(0, 0, 0, 0.5);
     /* Dim background */
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 2000;
     display: flex;
     justify-content: center;
